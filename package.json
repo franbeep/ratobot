@@ -1,0 +1,35 @@
+{
+  "name": "ratobot",
+  "version": "1.0.0",
+  "description": "discord bot para rato no albion",
+  "main": "index.js",
+  "scripts": {
+    "test": "xo"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/Toxad/ratobot.git"
+  },
+  "keywords": [
+    "albion",
+    "discord",
+    "bot"
+  ],
+  "author": "Felipe Almeida",
+  "license": "MIT",
+  "bugs": {
+    "url": "https://github.com/Toxad/ratobot/issues"
+  },
+  "homepage": "https://github.com/Toxad/ratobot#readme",
+  "dependencies": {
+    "dotenv": "^8.2.0",
+    "migrate": "^1.6.2",
+    "pg": "^8.2.0",
+    "redis": "^3.0.2",
+    "rxjs": "^6.5.5"
+  },
+  "devDependencies": {
+    "nodemon": "^2.0.4",
+    "xo": "^0.30.0"
+  }
+}
