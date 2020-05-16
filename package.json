@@ -4,7 +4,13 @@
   "description": "discord bot para rato no albion",
   "main": "index.js",
   "scripts": {
-    "test": "xo"
+    "test": "xo",
+    "lint": "xo",
+    "format": "xo --fix",
+    "start": "node ./bin/index.js",
+    "dev": "nodemon ./bin/index.js",
+    "migrate": "node ./bin/migrate.js",
+    "migrate:create": "migrate create --migrations-dir='./src/migrations'"
   },
   "repository": {
     "type": "git",

@@ -1,0 +1,30 @@
+# docker-compose.yml
+version: "3"
+services:
+  app:
+    container_name: ratobot-maincontainer
+    build:
+      context: .
+      dockerfile: Dockerfile
+      args:
+        - ENV=$BUILD_ENVIRONMENT
+    depends_on:
+      - db
+      - redis
+    env_file:
+      - .env
+    command: bash -c "if [ '$BUILD_ENVIRONMENT' = 'production' ] ; then npm run start ; else npm run dev ; fi"
+
+  redis:
+    image: redis
+    logging:
+      driver: none
+
+  db:
+    image: postgres
+    env_file:
+      - .env
+    ports:
+      - "28592:5432"
+    logging:
+      driver: none
