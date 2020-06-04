@@ -26,6 +26,11 @@ const config = (sequelize, Sequelize) => {
         type: Sequelize.STRING,
         allowNull: true,
       },
+      partySize: {
+        type: Sequelize.INTEGER,
+        allowNull: false,
+        defaultValue: 0,
+      },
     },
     {
       sequelize,

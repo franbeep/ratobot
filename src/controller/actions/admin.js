@@ -29,6 +29,10 @@ const adminAjudaActionExec = function (request) {
         value: "!admin grupos",
       },
       {
+        name: "Excluir grupo",
+        value: "!admin grupo-eliminar <nome_do_mapa>",
+      },
+      {
         name: "Listar estatisticas do bot do dia/mes/ano",
         value: "!admin estatisticas",
       },
@@ -105,7 +109,29 @@ const adminGruposActionExec = function (request) {
       category: request.message.channel.parentID,
     },
   }).then((groups) => {
-    request.message.author.send("All users:", JSON.stringify(groups, null, 4));
+    const groupsString = groups.reduce((acc, val) => `${val.map}, ${acc}`, "");
+    request.message.author.send(`Grupos: ${groupsString}`);
+  });
+};
+
+const adminGrupoEliminarAtionExec = function (request) {
+  if (request.args.length < 1) {
+    // no name
+    return;
+  }
+
+  const [...map] = request.args.join(" ");
+
+  request.models.Group.findAll({ where: { map } }).then((groups) => {
+    groups.forEach((group) => {
+      request.models.User.update(
+        { groupId: null },
+        { where: { groupId: group.id } }
+      );
+    });
+    request.models.Group.destroy({ where: { map } }).then(() => {
+      request.message.reply("Ok");
+    });
   });
 };
 
@@ -322,12 +348,13 @@ const adminStartupActionExec = function (request) {
     return;
   }
 
-  const [roleName] = request.args;
+  const [roleName, partySize] = request.args;
 
   request.message.guild.roles.cache.forEach((role) => {
     if (role.name === roleName) {
       request.models.Config.create({
         registredRole: role.id,
+        partySize: partySize || 0,
         server: request.message.guild.id,
         category: request.message.channel.parentID,
       });
@@ -348,6 +375,7 @@ const actions = {
   mutar: new BaseAction(MINIMUM_LEVEL, adminMutarActionExec),
   desmutar: new BaseAction(MINIMUM_LEVEL, adminDesmutarActionExec),
   startup: new BaseAction(MINIMUM_LEVEL, adminStartupActionExec),
+  "grupo-eliminar": new BaseAction(MINIMUM_LEVEL, adminGrupoEliminarAtionExec),
 };
 
 module.exports = {

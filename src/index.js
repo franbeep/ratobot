@@ -2,7 +2,10 @@ require("dotenv").config();
 const Discord = require("discord.js");
 const models = require("./models");
 const handle = require("./middleware");
-const { listenWaitlistMessage } = require("./controller/listeners");
+const {
+  listenWaitlistMessage,
+  removeInactiveGroups,
+} = require("./controller/listeners");
 
 const discordClient = new Discord.Client();
 const startupDeleteDB = false;
@@ -10,6 +13,11 @@ const startupDeleteDB = false;
 // db init
 models.sequelize.sync({ force: startupDeleteDB }).then(() => {
   console.log("Connected to PostgreSQL.");
+
+  // remove empty groups
+  setInterval(() => {
+    removeInactiveGroups(models);
+  }, 60 * 60 * 1000);
 
   // discord init
   discordClient.login(process.env.DISCORD_TOKEN);

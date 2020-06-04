@@ -9,9 +9,9 @@ const grupoActionExec = function (request) {
 };
 
 const grupoMembrosActionExec = function (request) {
-  const { group } = request.modelUser;
+  const { group, groupId } = request.modelUser;
 
-  if (!group) {
+  if (!groupId) {
     // no group
     request.message.author.send("Você não está em nenhum grupo.");
     return;
@@ -19,21 +19,21 @@ const grupoMembrosActionExec = function (request) {
 
   request.models.User.findAll({
     where: {
-      group,
+      groupId,
       server: request.message.guild.id,
       category: request.message.channel.parentID,
     },
   }).then((users) => {
-    const [user] = users;
-
-    if (!user) {
+    if (users.length <= 0) {
       return;
     }
 
-    request.message.author.send(
-      "Membros do grupo:",
-      users.reduce((acc, val) => `${val}, ${acc}`, "")
+    const groupMembers = users.reduce(
+      (acc, val) => `${val.gameName}, ${acc}`,
+      ""
     );
+
+    request.message.author.send(`Membros do grupo: ${groupMembers}`);
   });
 };
 
@@ -71,11 +71,13 @@ const grupoConvidarActionExec = function (request) {
       return;
     }
 
-    request.models.User.update({ group }, { where: { id: user.id } });
+    request.models.User.update({ groupId }, { where: { id: user.id } });
 
     request.message.guild.members
       .fetch(user.discordIdentifier)
-      .send(`Você entrou em um grupo! Mapa: '${group.map}'`);
+      .then((member) => {
+        member.user.send(`Você entrou em um grupo! Mapa: '${group.map}'`);
+      });
   });
 };
 
@@ -116,20 +118,41 @@ const grupoSalaActionExec = function (request) {
     return;
   }
 
-  const channelName = `Sala #${new Date().getTime()}`;
+  request.models.Config.findAll({
+    where: {
+      server: request.message.guild.id,
+      category: request.message.channel.parentID,
+    },
+  }).then((configs) => {
+    const [config] = configs;
 
-  request.message.guild.channels
-    .create(`[RB] ${channelName}`, {
-      type: "voice",
-      parent: request.message.channel.parentID,
-    })
-    .then((channel) => {
-      channel.setParent(request.message.channel.parentID);
+    if (!config) {
+      return;
+    }
+
+    request.models.User.findAll({ where: { groupId } }).then((users) => {
+      if (users.length < config.partySize) {
+        request.message.author.send(
+          `Seu grupo precisa ter ${config.partySize} membros para criar sala.`
+        );
+      } else {
+        const channelName = `Sala #${new Date().getTime()}`;
+
+        request.message.guild.channels
+          .create(`[RB] ${channelName}`, {
+            type: "voice",
+            parent: request.message.channel.parentID,
+          })
+          .then(() => {
+            request.message.author.send("Sala de grupo criada.");
+          });
+      }
     });
+  });
 };
 
 const grupoSairActionExec = function (request) {
-  const { groupId } = request.modelUser;
+  const { groupId, group } = request.modelUser;
 
   if (!groupId) {
     // no group
@@ -151,6 +174,9 @@ const grupoSairActionExec = function (request) {
       if (users.length <= 0) {
         request.models.Group.destroy({ where: { id: groupId } });
       }
+      request.message.author.send(
+        `Você não está mais em um grupo. Mapa: '${group.map}'`
+      );
     });
   });
 };
@@ -173,6 +199,13 @@ const grupoRetirarActionExec = function (request) {
   }
 
   const [name] = request.args;
+
+  if (name === request.modelUser.gameName) {
+    request.message.author.send(
+      "Utilize o comando '!grupo sair' para sair do grupo."
+    );
+    return;
+  }
 
   request.models.User.findAll({
     where: {
@@ -197,7 +230,15 @@ const grupoRetirarActionExec = function (request) {
             category: request.message.channel.parentID,
           },
         }
-      );
+      ).then(() => {
+        request.message.guild.members
+          .fetch(user.discordIdentifier)
+          .then((member) => {
+            member.user.send(
+              `Você não está mais em um grupo. Mapa: '${group.map}'`
+            );
+          });
+      });
     }
   });
 };
@@ -219,13 +260,60 @@ const grupoMapaActionExec = (request) => {
     return;
   }
 
-  const [map] = request.args;
+  const map = request.args.join(" ");
 
   request.models.Group.update(
     { map },
     { where: { id: request.modelUser.groupId } }
   ).then(() => {
-    request.message.author.send("Atribuído mapa com sucesso.");
+    request.message.author.send(`Atribuído mapa com sucesso. Mapa: ${map}`);
+  });
+};
+
+const grupoLiderActionExec = (request) => {
+  if (request.args < 1) {
+    // no name
+    request.message.author.send(
+      "Uso: !grupo convidar <nome_ingame_do_jogador>"
+    );
+    return;
+  }
+
+  const { groupId, group } = request.modelUser;
+
+  if (!groupId || !(group.leader === request.modelUser.gameName)) {
+    // no group or not leader
+    request.message.author.send(
+      "Você não está em nenhum grupo ou não é lider de um."
+    );
+    return;
+  }
+
+  const [gameName] = request.args;
+
+  request.models.User.findAll({
+    where: {
+      gameName,
+      server: request.message.guild.id,
+      category: request.message.channel.parentID,
+    },
+  }).then((users) => {
+    const [user] = users;
+
+    if (!user) {
+      return;
+    }
+
+    request.models.Group.update(
+      { leader: user.gameName },
+      { where: { id: groupId } }
+    );
+
+    request.message.guild.members
+      .fetch(user.discordIdentifier)
+      .then((member) => {
+        member.user.send(`Você virou o lider do grupo! Mapa: '${group.map}'`);
+      });
   });
 };
 
@@ -237,6 +325,7 @@ const actions = {
   sair: new BaseAction(MINIMUM_LEVEL, grupoSairActionExec),
   retirar: new BaseAction(MINIMUM_LEVEL, grupoRetirarActionExec),
   mapa: new BaseAction(MINIMUM_LEVEL, grupoMapaActionExec),
+  lider: new BaseAction(MINIMUM_LEVEL, grupoLiderActionExec),
 };
 
 module.exports = {

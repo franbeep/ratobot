@@ -1,7 +1,5 @@
 const { genWaitlistEmbed } = require("./actions/base");
 
-MINIMUM_LEVEL = 0;
-
 const setupListeningReactionMessages = (client, models) => {
   console.log("Listening to messages...");
 
@@ -53,7 +51,18 @@ const setupListeningReactionMessages = (client, models) => {
   });
 };
 
-const removeInactiveGroups = (client, models) => {};
+const removeInactiveGroups = (models) => {
+  models.Group.findAll().then((groups) => {
+    groups.forEach((group) => {
+      models.User.findAll({ where: { groupId: group.id } }).then((users) => {
+        if (users.length <= 0) {
+          models.Group.destroy({ where: { id: group.id } });
+          console.log(`Group ${group.id} removed.`);
+        }
+      });
+    });
+  });
+};
 
 const listenWaitlistMessage = (message, config, models) => {
   message.awaitReactions(async (reaction, user) => {
