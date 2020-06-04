@@ -42,21 +42,31 @@ const baseEmbed = {
 };
 
 const genWaitlistEmbed = (queue) => {
-  let count = 1;
+  let count = 0;
 
   const body = {
     title: "# Lista de Espera",
     description: "**Segue pessoas que estão na lista de espera:**",
-    fields: queue.reduce((acc, val) => {
-      acc.push({
-        // name: "Teste",
+    fields: [
+      {
         name: "\u200b",
-        value: `**${count}. ${val.user.gameName}**`,
-        inline: false,
-      });
-      count += 1;
-      return acc;
-    }, []),
+        value: queue.reduce((acc, val) => {
+          count += 1;
+          return `**${count}. ${val.user.gameName}**\n${acc}`;
+        }, ""),
+      },
+    ],
+
+    // queue.reduce((acc, val) => {
+    //   acc.push({
+    //     // name: "Teste",
+    //     name: "\u200b",
+    //     value: `**${count}. ${val.user.gameName}**`,
+    //     inline: false,
+    //   });
+    //   count += 1;
+    //   return acc;
+    // }, ""),
   };
 
   return {

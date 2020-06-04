@@ -17,7 +17,7 @@ models.sequelize.sync({ force: startupDeleteDB }).then(() => {
   // remove empty groups
   setInterval(() => {
     removeInactiveGroups(models);
-  }, 60 * 60 * 1000);
+  }, 10 * 60 * 1000);
 
   // discord init
   discordClient.login(process.env.DISCORD_TOKEN);

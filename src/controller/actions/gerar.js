@@ -2,7 +2,7 @@ const { BaseAction, notYetImplemented, genWaitlistEmbed } = require("./base");
 
 const { listenWaitlistMessage } = require("../listeners");
 
-const MINIMUM_LEVEL = 0;
+const MINIMUM_LEVEL = 4;
 
 const gerarActionExec = function (request) {
   request.message.author.send("Uso: !gerar <principal|regras|espera>.");
@@ -45,14 +45,12 @@ const gerarEsperaActionExec = function (request) {
 // waitlistBoardMessage
 
 const gerarPrincipalActionExec = function (request) {
-  request.models.Config.findAll({
+  request.models.Config.findOne({
     where: {
       server: request.message.guild.id,
       category: request.message.channel.parentID,
     },
-  }).then((configs) => {
-    const [config] = configs;
-
+  }).then((config) => {
     if (!config) {
       return;
     }

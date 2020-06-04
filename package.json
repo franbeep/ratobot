@@ -8,7 +8,8 @@
     "lint": "xo",
     "format": "xo --fix",
     "start": "node ./src/index.js",
-    "dev": "nodemon ./src/index.js"
+    "dev": "nodemon ./src/index.js",
+    "admin_setup": "node ./src/admin_setup.js"
   },
   "repository": {
     "type": "git",

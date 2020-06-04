@@ -1,61 +1,10 @@
 const { genWaitlistEmbed } = require("./actions/base");
 
-const setupListeningReactionMessages = (client, models) => {
-  console.log("Listening to messages...");
-
-  // models.Config.findAll().then(configs => {
-  //   configs.forEach(config => {
-
-  //   })
-  // });
-
-  client.on("messageReactionAdd", async (reaction, user) => {
-    if (user.bot) {
-      return;
-    }
-
-    console.log(123);
-
-    const configs = await models.Config.findAll();
-    // When we receive a reaction we check if the reaction is partial or not
-    if (reaction.partial) {
-      // If the message this reaction belongs to was removed the fetching might result in an API error, which we need to handle
-      try {
-        await reaction.fetch();
-      } catch (error) {
-        console.log("Something went wrong when fetching the message: ", error);
-        // Return as `reaction.message.author` may be undefined/null
-        return;
-      }
-    }
-
-    configs.forEach((config) => {
-      if (config.waitlistBoardMessage === reaction.message.id) {
-        switch (reaction.emoji.name) {
-          case "⏫":
-            // join queue
-            console.log(`${user.tag} reacted up!`);
-            break;
-
-          case "⏬":
-            // leave queue
-            console.log(`${user.tag} reacted down!`);
-            break;
-
-          default:
-            console.log(`${user.tag} reacted with ${reaction.emoji.name}`);
-            break;
-        }
-      }
-    });
-  });
-};
-
 const removeInactiveGroups = (models) => {
   models.Group.findAll().then((groups) => {
     groups.forEach((group) => {
-      models.User.findAll({ where: { groupId: group.id } }).then((users) => {
-        if (users.length <= 0) {
+      models.User.findOne({ where: { groupId: group.id } }).then((user) => {
+        if (!user) {
           models.Group.destroy({ where: { id: group.id } });
           console.log(`Group ${group.id} removed.`);
         }
@@ -77,7 +26,7 @@ const listenWaitlistMessage = (message, config, models) => {
       return;
     }
 
-    const [modelUser] = await models.User.findAll({
+    const modelUser = await models.User.findOne({
       where: { discordIdentifier: user.id },
     });
 
@@ -126,7 +75,6 @@ const listenWaitlistMessage = (message, config, models) => {
 };
 
 module.exports = {
-  setupListeningReactionMessages,
   removeInactiveGroups,
   listenWaitlistMessage,
 };

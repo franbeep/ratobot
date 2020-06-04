@@ -1,7 +1,7 @@
 /* eslint-disable func-names */
 const { BaseAction, notYetImplemented, baseEmbed } = require("./base");
 
-const MINIMUM_LEVEL = 0;
+const MINIMUM_LEVEL = 5;
 
 const adminActionExec = function (request) {
   request.message.author.send(
@@ -12,89 +12,29 @@ const adminActionExec = function (request) {
 const adminAjudaActionExec = function (request) {
   const ajudaMessage = {
     ...baseEmbed,
-    title: "Ajuda - Comandos Administrativos",
-    description: "Segue lista de comandos administrativos disponíveis no bot:",
+    title: "# Ajuda - Comandos Administrativos",
+    description:
+      "**Segue lista de comandos administrativos disponíveis no bot:**",
     fields: [
       {
         name: "\u200b",
-        value: "\u200b",
-        inline: false,
-      },
-      {
-        name: "Lista de comandos administrativos",
-        value: "!admin ajuda",
-      },
-      {
-        name: "Listar grupos ativos, seus mapas e usuários",
-        value: "!admin grupos",
-      },
-      {
-        name: "Excluir grupo",
-        value: "!admin grupo-eliminar <nome_do_mapa>",
-      },
-      {
-        name: "Listar estatisticas do bot do dia/mes/ano",
-        value: "!admin estatisticas",
-      },
-      {
-        name: "Kickar usuário",
-        value: "!admin kick <usuario>",
-      },
-      {
-        name: "Banir usuário",
-        value: "!admin banir <usuario>",
-      },
-      {
-        name: "Aviar usuário",
-        value: "!admin avisar",
-      },
-      {
-        name: "Ver quantidade de avisos do usuário",
-        value: "!admin avisos <usuario>",
-      },
-      {
-        name: "Ver todos os usuários banidos",
-        value: "!admin banimentos",
-      },
-      {
-        name:
-          "Mutar usuários do voice chat principal, podendo escolher ser todos, só deixar os lideres do grupos ou só os administradores",
-        value: "!admin mutar <todos|lideres|admins>",
-      },
-      {
-        name: "Desmutar todos do voice chat principal",
-        value: "!admin desmutar",
-      },
-      {
-        name: "Iniciar servidor com configuracões basicas",
-        value: "!admin startup",
-      },
-      {
-        name: "\u200b",
-        value: "\u200b",
-        inline: false,
-      },
-      {
-        name: "Registrar como Rato Registrado.",
-        value: "!registrar <nome_discord> <nome_jogo>",
-      },
-      {
-        name: "Mover usuário para sala principal",
-        value: "!mover principal <usuario>",
-      },
-      {
-        name:
-          "Cria canais de voice principal, quadro de fila e quadro de regras",
-        value: "!gerar <principal|regras|espera",
-      },
-      // {
-      //   name: "Definir canal principal",
-      //   value: "!canal principal <canal>",
-      // },
-      {
-        name: "\u200b",
-        value: "\u200b",
-        inline: false,
+        value: `
+        **!admin ajuda** — lista de comandos para administradores
+        **!admin grupos** — listar grupos ativos
+        **!admin grupo-eliminar <nome_do_mapa>** — exclui grupo
+        **!admin kick <usuário>** — kick um usuário do voicechat
+        **!admin banir <usuário>** — bane um usuário do servidor
+        **!admin avisar <usuário>** — avisa um usuário sobre algo incorreto
+        **!admin avisos <usuário>** — gerar quantidade de avisso do usuário
+        **!admin banimentos** — listar banimentos
+        **!admin mutar <todos|lideres|admins>** — mutar todos, ou deixar somente lideres, ou ou deixar somente admins
+        **!admin desmutar** — desmutar todos
+        **!admin startup <role_padrão> [quantidade_de_jogadores_no_grupo]** — inicia servidor
+        **!admin level <usuário> <level>** — atribui level a um usuário
+        **!registrar <nome_no_discord> <nome_no_jogo>** — registra usuário
+        **!gerar principal <nome_da_sala>** — gera canal de voice para ser a sala principal
+        **!gerar espera** — gera lista de espera
+        `,
       },
     ],
   };
@@ -122,7 +62,13 @@ const adminGrupoEliminarAtionExec = function (request) {
 
   const [...map] = request.args.join(" ");
 
-  request.models.Group.findAll({ where: { map } }).then((groups) => {
+  request.models.Group.findAll({
+    where: {
+      map,
+      server: request.message.guild.id,
+      category: request.message.channel.parentID,
+    },
+  }).then((groups) => {
     groups.forEach((group) => {
       request.models.User.update(
         { groupId: null },
@@ -145,15 +91,13 @@ const adminKickActionExec = function (request) {
 
   const [name] = request.args;
 
-  request.models.User.findAll({
+  request.models.User.findOne({
     where: {
       gameName: name,
       server: request.message.guild.id,
       category: request.message.channel.parentID,
     },
-  }).then((users) => {
-    const [user] = users;
-
+  }).then((user) => {
     if (user) {
       request.message.guild.members
         .fetch(user.discordIdentifier)
@@ -181,15 +125,13 @@ const adminBanirActionExec = function (request) {
       ? `Você  foi banido por: ${request.args[1]}`
       : "Você foi banido.";
 
-  request.models.User.findAll({
+  request.models.User.findOne({
     where: {
       gameName: name,
       server: request.message.guild.id,
       category: request.message.channel.parentID,
     },
-  }).then((users) => {
-    const [user] = users;
-
+  }).then((user) => {
     if (user) {
       request.message.guild.members
         .fetch(user.discordIdentifier)
@@ -218,15 +160,13 @@ const adminAvisarActionExec = function (request) {
 
   const [name] = request.args;
 
-  request.models.User.findAll({
+  request.models.User.findOne({
     where: {
       gameName: name,
       server: request.message.guild.id,
       category: request.message.channel.parentID,
     },
-  }).then((users) => {
-    const [user] = users;
-
+  }).then((user) => {
     if (user) {
       request.models.User.update(
         { warningLevel: user.warningLevel + 1 },
@@ -249,15 +189,13 @@ const adminAvisosActionExec = function (request) {
 
   const [name] = request.args;
 
-  request.models.User.findAll({
+  request.models.User.findOne({
     where: {
       gameName: name,
       server: request.message.guild.id,
       category: request.message.channel.parentID,
     },
-  }).then((users) => {
-    const [user] = users;
-
+  }).then((user) => {
     if (user) {
       request.message.author.send(
         `Usuário ${name} tem ${user.warningLevel} avisos.`
@@ -352,15 +290,57 @@ const adminStartupActionExec = function (request) {
 
   request.message.guild.roles.cache.forEach((role) => {
     if (role.name === roleName) {
-      request.models.Config.create({
-        registredRole: role.id,
-        partySize: partySize || 0,
-        server: request.message.guild.id,
-        category: request.message.channel.parentID,
+      request.models.Config.findOne({
+        where: {
+          server: request.message.guild.id,
+          category: request.message.channel.parentID,
+        },
+      }).then((config) => {
+        if (config) {
+          request.models.Config.update(
+            {
+              registredRole: role.id,
+              partySize: partySize || 0,
+            },
+            {
+              where: {
+                id: config.id,
+              },
+            }
+          );
+        } else {
+          request.models.Config.create({
+            registredRole: role.id,
+            partySize: partySize || 0,
+            server: request.message.guild.id,
+            category: request.message.channel.parentID,
+          });
+        }
+
+        request.message.reply("Ok");
       });
-      request.message.reply("Ok");
     }
   });
+};
+
+const adminLevelActionExec = function (request) {
+  if (request.args.length < 2) {
+    // no name or
+    return;
+  }
+
+  const [name, level] = request.args;
+
+  request.models.User.update(
+    { serverLevel: level },
+    { where: { gameName: name } }
+  )
+    .then(() => {
+      request.message.reply("Ok");
+    })
+    .catch(() => {
+      request.message.reply("Failed");
+    });
 };
 
 const actions = {
@@ -376,6 +356,7 @@ const actions = {
   desmutar: new BaseAction(MINIMUM_LEVEL, adminDesmutarActionExec),
   startup: new BaseAction(MINIMUM_LEVEL, adminStartupActionExec),
   "grupo-eliminar": new BaseAction(MINIMUM_LEVEL, adminGrupoEliminarAtionExec),
+  level: new BaseAction(MINIMUM_LEVEL, adminLevelActionExec),
 };
 
 module.exports = {

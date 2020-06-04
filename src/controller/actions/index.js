@@ -19,10 +19,12 @@ module.exports = {
   ...mover,
   ...registrar,
   ...canal,
-  test: new BaseAction(0, function (request) {}),
-  debug: new BaseAction(0, function (request) {
+  test: new BaseAction(5, function (request) {
+    request.message.reply("Hello!");
+  }),
+  debug: new BaseAction(5, function (request) {
     const printResults = async () => {
-      request.message.reply("Hello!");
+      request.message.reply("Debugging...");
 
       console.log("Model user:");
       console.log("--------------------");
@@ -34,13 +36,12 @@ module.exports = {
 
       console.log("Config:");
       console.log("--------------------");
-      await request.models.Config.findAll({
+      await request.models.Config.findOne({
         where: {
           server: request.message.guild.id,
           category: request.message.channel.parentID,
         },
-      }).then((configs) => {
-        const [config] = configs;
+      }).then((config) => {
         if (config) {
           console.log(config.dataValues);
         }

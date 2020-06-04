@@ -11,7 +11,7 @@ module.exports = async (request) => {
     group: null,
   };
 
-  const users = await request.models.User.findAll({
+  const user = await request.models.User.findOne({
     where: {
       discordIdentifier: request.message.author.id,
       server: request.message.guild.id,
@@ -19,8 +19,6 @@ module.exports = async (request) => {
     },
     include: [{ model: request.models.Group }],
   });
-
-  const [user] = users;
 
   if (user) {
     request.modelUser = user;

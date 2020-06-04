@@ -1,15 +1,15 @@
 const { BaseAction, notYetImplemented } = require("./base");
 
-const MINIMUM_LEVEL = 0;
+const MINIMUM_LEVEL = 1;
 
 const grupoActionExec = function (request) {
   request.message.author.send(
-    "Uso: !grupo <membros|convidar|criar|sala|sair|retirar|mapa>."
+    "Uso: !grupo <membros|convidar|criar|sala|sair|retirar|mapa|lider>."
   );
 };
 
 const grupoMembrosActionExec = function (request) {
-  const { group, groupId } = request.modelUser;
+  const { groupId } = request.modelUser;
 
   if (!groupId) {
     // no group
@@ -24,10 +24,6 @@ const grupoMembrosActionExec = function (request) {
       category: request.message.channel.parentID,
     },
   }).then((users) => {
-    if (users.length <= 0) {
-      return;
-    }
-
     const groupMembers = users.reduce(
       (acc, val) => `${val.gameName}, ${acc}`,
       ""
@@ -58,15 +54,13 @@ const grupoConvidarActionExec = function (request) {
 
   const [gameName] = request.args;
 
-  request.models.User.findAll({
+  request.models.User.findOne({
     where: {
       gameName,
       server: request.message.guild.id,
       category: request.message.channel.parentID,
     },
-  }).then((users) => {
-    const [user] = users;
-
+  }).then((user) => {
     if (!user) {
       return;
     }
@@ -118,14 +112,12 @@ const grupoSalaActionExec = function (request) {
     return;
   }
 
-  request.models.Config.findAll({
+  request.models.Config.findOne({
     where: {
       server: request.message.guild.id,
       category: request.message.channel.parentID,
     },
-  }).then((configs) => {
-    const [config] = configs;
-
+  }).then((config) => {
     if (!config) {
       return;
     }
@@ -207,15 +199,13 @@ const grupoRetirarActionExec = function (request) {
     return;
   }
 
-  request.models.User.findAll({
+  request.models.User.findOne({
     where: {
       gameName: name,
       server: request.message.guild.id,
       category: request.message.channel.parentID,
     },
-  }).then((users) => {
-    const [user] = users;
-
+  }).then((user) => {
     if (!user) {
       return;
     }
@@ -291,15 +281,13 @@ const grupoLiderActionExec = (request) => {
 
   const [gameName] = request.args;
 
-  request.models.User.findAll({
+  request.models.User.findOne({
     where: {
       gameName,
       server: request.message.guild.id,
       category: request.message.channel.parentID,
     },
-  }).then((users) => {
-    const [user] = users;
-
+  }).then((user) => {
     if (!user) {
       return;
     }

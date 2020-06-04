@@ -1,6 +1,6 @@
 const { BaseAction } = require("./base");
 
-const MINIMUM_LEVEL = 0;
+const MINIMUM_LEVEL = 4;
 const REGISTRED_LEVEL = 1;
 
 const registrarActionExec = function (request) {
@@ -32,11 +32,9 @@ const registrarActionExec = function (request) {
         console.log("Error: setNickname failed:", err);
       });
 
-      request.models.Config.findAll({
+      request.models.Config.findOne({
         where: { server: request.message.guild.id },
-      }).then((configs) => {
-        const [config] = configs;
-
+      }).then((config) => {
         if (!config) {
           request.message.reply(
             "Servidor não configurado. Contacte um Administrator."

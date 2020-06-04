@@ -1,16 +1,14 @@
 const { BaseAction } = require("./base");
 
-const MINIMUM_LEVEL = 0;
+const MINIMUM_LEVEL = 1;
 
 const moverActionExec = function (request) {
-  request.models.Config.findAll({
+  request.models.Config.findOne({
     where: {
       server: request.message.guild.id,
       category: request.message.channel.parentID,
     },
-  }).then((configs) => {
-    const [config] = configs;
-
+  }).then((config) => {
     if (!config) {
       request.message.reply(
         "Servidor não configurado. Contacte um Administrator."
