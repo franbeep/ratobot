@@ -19,25 +19,26 @@ const adminAjudaActionExec = function (request) {
       {
         name: "\u200b",
         value: `
-        **!admin ajuda** — lista de comandos para administradores
-        **!admin grupos** — listar grupos ativos
-        **!admin grupo-eliminar <nome_do_mapa>** — exclui grupo
-        **!admin kick <usuário>** — kick um usuário do voicechat
-        **!admin banir <usuário>** — bane um usuário do servidor
-        **!admin avisar <usuário>** — avisa um usuário sobre algo incorreto
-        **!admin avisos <usuário>** — gerar quantidade de avisso do usuário
-        **!admin banimentos** — listar banimentos
-        **!admin mutar <todos|lideres|admins>** — mutar todos, ou deixar somente lideres, ou ou deixar somente admins
-        **!admin desmutar** — desmutar todos
-        **!admin startup <role_padrão> [quantidade_de_jogadores_no_grupo]** — inicia servidor
-        **!admin level <usuário> <level>** — atribui level a um usuário
-        **!registrar <nome_no_discord> <nome_no_jogo>** — registra usuário
-        **!gerar principal <nome_da_sala>** — gera canal de voice para ser a sala principal
-        **!gerar espera** — gera lista de espera
-        `,
+**!admin ajuda** — lista de comandos para administradores
+**!admin grupos** — listar grupos ativos
+**!admin grupo-eliminar <nome_do_mapa>** — exclui grupo
+**!admin kick <usuário>** — kick um usuário do voicechat
+**!admin banir <usuário>** — bane um usuário do servidor
+**!admin avisar <usuário>** — avisa um usuário sobre algo incorreto
+**!admin avisos <usuário>** — gerar quantidade de avisso do usuário
+**!admin banimentos** — listar banimentos
+**!admin mutar <todos|lideres|admins>** — mutar todos, ou deixar somente lideres, ou ou deixar somente admins
+**!admin desmutar** — desmutar todos
+**!admin startup <role_padrão> [quantidade_de_jogadores_no_grupo]** — inicia servidor
+**!admin level <usuário> <level>** — atribui level a um usuário
+**!registrar <nome_no_discord> <nome_no_jogo>** — registra usuário
+**!gerar principal <nome_da_sala>** — gera canal de voice para ser a sala principal
+**!gerar espera** — gera lista de espera`, // limit 1024 chars per value
       },
     ],
   };
+
+  console.log("test1");
 
   request.message.author.send({ embed: ajudaMessage });
 };
@@ -60,7 +61,9 @@ const adminGrupoEliminarAtionExec = function (request) {
     return;
   }
 
-  const [...map] = request.args.join(" ");
+  const map = request.args.join(" ");
+
+  console.log("map:", map);
 
   request.models.Group.findAll({
     where: {

@@ -128,15 +128,22 @@ const grupoSalaActionExec = function (request) {
           `Seu grupo precisa ter ${config.partySize} membros para criar sala.`
         );
       } else {
-        const channelName = `Sala #${new Date().getTime()}`;
+        const channelName = group.map
+          ? `Sala ${group.map}`
+          : `Sala #${new Date().getTime()}`;
 
         request.message.guild.channels
           .create(`[RB] ${channelName}`, {
             type: "voice",
             parent: request.message.channel.parentID,
           })
-          .then(() => {
+          .then((channel) => {
             request.message.author.send("Sala de grupo criada.");
+            setTimeout(() => {
+              channel.delete().catch(() => {
+                console.log("Channel already deleted. Ignoring.");
+              });
+            }, 60 * 60 * 1000); // 1 hour
           });
       }
     });

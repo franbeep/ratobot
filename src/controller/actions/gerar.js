@@ -21,6 +21,8 @@ const gerarEsperaActionExec = function (request) {
   }).then((queue) => {
     const waitlistMessage = genWaitlistEmbed(queue);
 
+    console.log(waitlistMessage);
+
     request.message.channel.send({ embed: waitlistMessage }).then((message) => {
       request.models.Config.update(
         { waitlistBoardMessage: message.id },

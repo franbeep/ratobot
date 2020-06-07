@@ -53,7 +53,7 @@ const genWaitlistEmbed = (queue) => {
         value: queue.reduce((acc, val) => {
           count += 1;
           return `**${count}. ${val.user.gameName}**\n${acc}`;
-        }, ""),
+        }, "\u200b"),
       },
     ],
 
